@@ -139,6 +139,21 @@ namespace Net4._5SafeTalkAPI.Controllers
             return null;
         }
 
+        [HttpGet]
+        public IHttpActionResult Get(string name)
+        {
+            RedisCache cache = GetCache();
+
+            int index = GetChatroomIndex(name, cache);
+            if (index < 0)
+            {
+                return null;
+            }
+
+            Chatroom chatroom = GetChatroom(index, cache);
+            return Ok(chatroom);
+        }
+
         [HttpPost]
         public async Task<IHttpActionResult> Join(User user, Chatroom chatroom)
         {
