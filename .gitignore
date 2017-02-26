@@ -240,3 +240,5 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/Net4.5SafeTalkAPI/secretConnectionStrings.config
+/Net4.5SafeTalkAPI/Properties/PublishProfiles/SafeTalkAPI - Web Deploy.pubxml
