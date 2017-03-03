@@ -9,30 +9,18 @@ namespace Net4._5SafeTalkAPI.Controllers
     public class UserController : ApiHubController<SafeTalkHub>, IRedisCacheUser
     {
         // Internal functions
-        public User ConvertToObject(string guid, string publicName)
-        {
-            User newObject = new User
-            {
-                Guid = guid,
-                PublicName = publicName
-            };
-
-            return newObject;
-        }
-
-        public void SaveUser(string guid, string publicName)
+        public void SaveUser(User user)
         {
             RedisCache cache = GetCache();            
-            int userIndex = GetUserIndex(guid, cache);
+            int userIndex = GetUserIndex(user, cache);
 
             if (userIndex < 0)
             {
-                User user = ConvertToObject(guid, publicName);
                 cache.Users.Add(user);
             }
             else
             {
-                cache.Users[userIndex].PublicName = publicName;
+                cache.Users[userIndex].PublicName = user.PublicName;
             }
 
             SetCache(cache);
@@ -47,6 +35,17 @@ namespace Net4._5SafeTalkAPI.Controllers
             User user = cache.Users[index];
 
             return user;
+        }
+
+        public int GetUserIndex(User user, RedisCache cache = null)
+        {
+            if (cache == null)
+            {
+                cache = GetCache();
+            }
+            int userIndex = cache.Users.FindIndex(x => x.Guid == user.Guid);
+
+            return userIndex;
         }
 
         public int GetUserIndex(string guid, RedisCache cache = null)
@@ -96,9 +95,9 @@ namespace Net4._5SafeTalkAPI.Controllers
         }
 
         [HttpPost]
-        public IHttpActionResult Save(string guid, string publicName)
+        public IHttpActionResult Save([FromBody]User user)
         {
-            SaveUser(guid, publicName);
+            SaveUser(user);
 
             // http://stackoverflow.com/questions/22762697/return-empty-json-on-null-in-webapi/22765622
             // Returning an empty string returns a 404, so we pass in a string here
