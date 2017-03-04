@@ -1,6 +1,7 @@
 ﻿using Net4._5SafeTalkAPI.Hubs;
 using Net4._5SafeTalkAPI.Interfaces;
 using SafeTalkCore;
+using SafeTalkCore.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -72,20 +73,20 @@ namespace Net4._5SafeTalkAPI.Controllers
             return chatroomIndex;
         }
 
-        public bool AddUserToChatroom(User user, Chatroom chatroom)
+        public bool AddUserToChatroom(UserChatroom userChatroom)
         {
             bool success = false;
             RedisCache cache = GetCache();
 
-            int chatroomFromCache = cache.Chatrooms.FindIndex(x => x.PublicName == chatroom.PublicName);
+            int chatroomFromCache = cache.Chatrooms.FindIndex(x => x.PublicName == userChatroom.Chatroom.PublicName);
             
             if (chatroomFromCache >= 0)
             {
                 // If the user isn't in the chatroom
-                if (!cache.Chatrooms[chatroomFromCache].UserGuids.Any(x => x == user.Guid))
+                if (!cache.Chatrooms[chatroomFromCache].UserGuids.Any(x => x == userChatroom.User.Guid))
                 {
                     // Add the user's guid to the chatroom
-                    cache.Chatrooms[chatroomFromCache].UserGuids.Add(user.Guid);
+                    cache.Chatrooms[chatroomFromCache].UserGuids.Add(userChatroom.User.Guid);
                     SetCache(cache);
                     success = true;
                 }
@@ -94,17 +95,17 @@ namespace Net4._5SafeTalkAPI.Controllers
             return success;
         }
 
-        public bool RemoveUserFromChatroom(User user, Chatroom chatroom)
+        public bool RemoveUserFromChatroom(UserChatroom userChatroom)
         {
             bool success = false;
             RedisCache Cache = GetCache();
 
-            int chatroomFromCache = Cache.Chatrooms.FindIndex(x => x.PublicName == chatroom.PublicName);
+            int chatroomFromCache = Cache.Chatrooms.FindIndex(x => x.PublicName == userChatroom.Chatroom.PublicName);
 
             if (chatroomFromCache >= 0)
             {
                 // Remove the user from the chatroom
-                Cache.Chatrooms[chatroomFromCache].UserGuids.RemoveAll(x => x == user.Guid);
+                Cache.Chatrooms[chatroomFromCache].UserGuids.RemoveAll(x => x == userChatroom.User.Guid);
                 SetCache(Cache);
                 success = true;
             }
@@ -155,13 +156,13 @@ namespace Net4._5SafeTalkAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IHttpActionResult> Join(User user, Chatroom chatroom)
+        public async Task<IHttpActionResult> Join(UserChatroom userChatroom)
         {
-            bool success = AddUserToChatroom(user, chatroom);
+            bool success = AddUserToChatroom(userChatroom);
 
             if (success)
             {
-                await Hub.Groups.Add(ConnectionId, chatroom.PublicName);
+                await Hub.Groups.Add(ConnectionId, userChatroom.Chatroom.PublicName);
                 return Ok("good");
             }
 
@@ -169,13 +170,13 @@ namespace Net4._5SafeTalkAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IHttpActionResult> Leave(User user, Chatroom chatroom)
+        public async Task<IHttpActionResult> Leave(UserChatroom userChatroom)
         {
-            bool success = RemoveUserFromChatroom(user, chatroom);
+            bool success = RemoveUserFromChatroom(userChatroom);
 
             if (success)
             {
-                await Hub.Groups.Remove(ConnectionId, chatroom.PublicName);
+                await Hub.Groups.Remove(ConnectionId, userChatroom.Chatroom.PublicName);
                 return Ok("good");
             }
 

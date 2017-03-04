@@ -1,4 +1,5 @@
 ﻿using SafeTalkCore;
+using SafeTalkCore.Models;
 using System.Collections.Generic;
 
 namespace Net4._5SafeTalkAPI.Interfaces
@@ -10,7 +11,7 @@ namespace Net4._5SafeTalkAPI.Interfaces
         List<Chatroom> GetChatrooms();
         Chatroom GetChatroom(int index, RedisCache cache = null);
         int GetChatroomIndex(string name, RedisCache cache = null);        
-        bool AddUserToChatroom(User user, Chatroom chatroom);
-        bool RemoveUserFromChatroom(User user, Chatroom chatroom);
+        bool AddUserToChatroom(UserChatroom userChatroom);
+        bool RemoveUserFromChatroom(UserChatroom userChatroom);
     }
 }
